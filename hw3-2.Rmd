@@ -1,0 +1,88 @@
+---
+title: "hw3-2"
+author: "Maegan Blansett"
+date: "May 19, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GG Plot
+
+GG Plot can be used to create many different kinds of informative, aesthetically appealing graphics in R. 
+
+Before we begin, we must load the required packages and read in our data. 
+
+
+
+```{r intro}
+# load/ install required packages 
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+library(gridExtra)
+
+# load data
+thinshallow = read.table("resthin.shallow.txt", header=T)
+thindeep = read.table("resthin.deep.txt", header=T)
+clim=read.table("sierraclim.txt",header=T)
+```
+
+## Different Kinds of Plots 
+
+One of the first things we might want to do with ggplot is explore the shape of our data. Like the base R function hist(), we can also use ggplot to make a histogram. In this example, we are looking at minimum temperatures across all days, months, and years. 
+
+```{r hist}
+# make a histogram of minimum temperatures 
+
+ggplot(data = clim, aes(tmin)) + 
+  geom_histogram(col = "grey", fill = "green") + 
+  labs(x = "Minimum Temperature", y = "Number of Days") + 
+  ggtitle("Minimum Temperature Distribution")
+```
+
+Another cool kind of plot we can create in ggplot is a jitter plot, which is useful for indicating densities of observations when we have many clustered around the same places. In this example, we consider the relationship between maximum temperatures and rain.
+
+```{r jitter}
+# plot precipitation by maximum temperature in a jitter plot 
+
+ggplot(clim, aes(x = tmax, y = rain, col = as.factor(month))) +
+  geom_jitter() +
+  labs(x = "Maximum Temperature", y = "Precipitation") +
+  ggtitle("Precipitation by Monthly Temperature")
+```
+
+Another useful thing we can do with ggplot is embed calculations that would otherwise require additional functions right into the code that calls the plot itself. Consider this example that displays average monthly transpiration and evaporation: 
+
+```{r combo}
+# plot average transpiration & evaporation by month for shallow thinning 
+
+transplot <- ggplot(thinshallow, aes(y = trans, x = as.factor(month))) + 
+  stat_summary(fun.y = "mean", geom = "point", col = "blue", shape = "+", size = 5) + 
+  geom_smooth() + 
+  labs(x = "Month", y = "Transpiration") + 
+  ggtitle("Transpiration")
+
+evapplot <- ggplot(thinshallow, aes(y = evap, x = as.factor(month))) + 
+  stat_summary(fun.y = "mean", geom = "point", col = "purple", shape = "-", size = 7) + 
+  geom_smooth() +
+  labs(x = "Month", y = "Evaporation") + 
+  ggtitle("Evaporation")
+
+grid.arrange(transplot, evapplot)
+```
+
+Notice how in the above example, we were also able to easily arrange two separate plots into one. 
+
+Yet another cool thing that ggplot allows us to do is create different plots based on a variable using facets. In this example, we can split up our observations of PSN by month and thinning intensity into separate plots for the different scenario years. 
+
+```{r facets}
+# plot PSN by month and thinning intensity, separated by scenario year 
+
+ggplot(data = thindeep, aes(x = as.factor(month), y = psn, col = thin)) + geom_line() + facet_grid( . ~ scen) + 
+  labs(x = "Month", y = "PSN") + 
+  ggtitle("PSN by Month, Scenario Year and Thinning Intensity")
+```
